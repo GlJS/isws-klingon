@@ -87,6 +87,7 @@ Ensure you have the following packages installed:
 - sentence-transformers
 - bertopic
 - scikit-learn
+- accelerate
 
 These can be installed via the provided `requirements.txt` file:
 ```bash

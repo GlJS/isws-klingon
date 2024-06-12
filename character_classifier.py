@@ -1,6 +1,7 @@
 from openai import OpenAI
 from transformers import pipeline
 import torch
+from tqdm import tqdm
 
 class CharacterClassifier:
     def __init__(self, character_types, model_name=None):
@@ -28,14 +29,14 @@ class CharacterClassifier:
                 return theme
     
     def classify_sentence_transformers(self, sentence):
-        result = self.classifier(self.prompt % sentence, max_length=10, num_return_sequences=1)[0]['generated_text']
+        result = self.classifier(self.prompt % sentence, max_new_tokens=10, num_return_sequences=1)[0]['generated_text']
         for theme in self.themes:
             if theme.lower() in result.lower():
                 return theme
 
     def classify_all_characters(self, characters, script):
         classifications = {}
-        for character in characters:
+        for character in tqdm(characters):
             character_type = self.classify_character(character, script)
             classifications[character] = character_type
         return classifications

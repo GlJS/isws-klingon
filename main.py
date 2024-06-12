@@ -8,6 +8,7 @@ from topic_modeler import TopicModeler
 from interaction_graph import InteractionGraph
 from sentence_classifier import SentenceClassifier
 from character_classifier import CharacterClassifier
+from ner_recognizer import NERRecognizer
 from dotenv import load_dotenv
 
 # Load environment variables from .env file
@@ -48,18 +49,12 @@ def main(input_file, output_folder, seed, algorithms, use_openai):
     ]
 
     # Step 1: Clean the movie script and get author-text pairs
-    if 'data_cleaner' in algorithms or 'all' in algorithms:
-        data_cleaner = DataCleaner(input_file)
-        author_text_pairs = data_cleaner.clean_movie_script()
-    else:
-        author_text_pairs = []
+    data_cleaner = DataCleaner(input_file)
+    author_text_pairs = data_cleaner.clean_movie_script()
 
     # Step 2: Split text into sentences
-    if 'topic_modeler' in algorithms or 'sentence_classifier' in algorithms or 'character_classifier' in algorithms or 'all' in algorithms:
-        sentences = [text for _, text in author_text_pairs]
-        all_sentences = [sentence for text in sentences for sentence in DataCleaner.split_into_sentences(text)]
-    else:
-        all_sentences = []
+    sentences = [text for _, text in author_text_pairs]
+    all_sentences = [sentence for text in sentences for sentence in DataCleaner.split_into_sentences(text)]
 
     # Step 3: Perform topic modeling on the sentences
     if 'topic_modeler' in algorithms or 'all' in algorithms:
@@ -94,6 +89,13 @@ def main(input_file, output_folder, seed, algorithms, use_openai):
             character_classifier = CharacterClassifier(model_name="meta-llama/Meta-Llama-3-8B-Instruct", character_types=character_types)
         character_classifications = character_classifier.classify_all_characters(characters, script_text)
         character_classifier.save_classifications_to_csv(character_classifications, character_classification_output_file)
+        
+    # Step 7: Perform Named Entity Recognition (NER) on the sentences
+    if 'ner_recognizer' in algorithms or 'all' in algorithms:
+        ner_recognizer = NERRecognizer()
+        ner_results = ner_recognizer.recognize_entities(all_sentences)
+        ner_recognizer.save_entities_to_csv(ner_results, ner_output_file)
+
 
     # Output a summary of the topics
     if 'topic_modeler' in algorithms or 'all' in algorithms:
@@ -104,7 +106,7 @@ if __name__ == "__main__":
     parser.add_argument('--input_file', type=str, required=True, help='Path to the input movie script text file.')
     parser.add_argument('--output_folder', type=str, required=True, help='Folder to save the output files.')
     parser.add_argument('--seed', type=int, default=42, help='Seed for reproducibility.')
-    parser.add_argument('--algorithms', nargs='+', default=['all'], choices=['all', 'data_cleaner', 'topic_modeler', 'interaction_graph', 'sentence_classifier', 'character_classifier'], help='Algorithms to run.')
+    parser.add_argument('--algorithms', nargs='+', default=['all'], choices=['all', 'data_cleaner', 'topic_modeler', 'interaction_graph', 'sentence_classifier', 'character_classifier', 'ner_recognizer'], help='Algorithms to run.')
     parser.add_argument('--use_openai',  action=argparse.BooleanOptionalAction, default=False, help='Use OpenAI API for classification.')
 
     args = parser.parse_args()

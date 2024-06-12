@@ -31,7 +31,9 @@ class SentenceClassifier:
                 return theme
     
     def classify_sentence_transformers(self, sentence):
-        result = self.classifier(self.prompt % sentence, max_length=10, num_return_sequences=1)[0]['generated_text']
+        prompt = self.prompt % sentence
+        result = self.classifier(prompt, max_new_tokens=10, num_return_sequences=1)[0]['generated_text']
+        result = result[len(prompt):]
         for theme in self.themes:
             if theme.lower() in result.lower():
                 return theme
@@ -39,7 +41,10 @@ class SentenceClassifier:
     def classify_sentences(self, sentences):
         classifications = []
         for sentence in tqdm(sentences):
-            theme = self.classify_sentence(sentence)
+            if self.model_name:
+                theme = self.classify_sentence_transformers(sentence)
+            else:
+                theme = self.classify_sentence_openai(sentence)
             classifications.append((sentence, theme))
         return classifications
 

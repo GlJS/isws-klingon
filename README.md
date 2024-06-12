@@ -1,4 +1,4 @@
-# Movie Script Analysis
+# Movie/Play Script Analysis
 This GitHub repository represents the code for the Klingon group at the International Semantic Web Research Summer School 2024.
 This project performs various analyses on a movie script, including data cleaning, topic modeling, character interaction graph creation, sentence theme classification, and character type classification.
 

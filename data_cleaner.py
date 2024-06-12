@@ -11,6 +11,8 @@ class DataCleaner:
         cleaned_line = re.sub(r'\{.*?\}', '', line)  # Remove {...}
         cleaned_line = re.sub(r'\[.*?\]', '', cleaned_line)  # Remove [...]
         cleaned_line = re.sub(r'\(.*?\)', '', cleaned_line)  # Remove (...)
+        cleaned_line = re.sub(r'\n', ' ', cleaned_line) # Remove \n 
+        cleaned_line = re.sub(r'\s+', ' ', cleaned_line) # Remove extra whitespace
         
         # Remove extra whitespace
         cleaned_line = cleaned_line.strip()

@@ -1,12 +1,15 @@
 from openai import OpenAI
+from tqdm import tqdm
 from transformers import pipeline
 import torch
 
-class CharacterClassifier:
-    def __init__(self, character_types, model_name=None):
-        self.character_types = character_types
-        self.prompt = "Classify the character '%s' into one of these types: %s. Only return the theme and nothing else. Based on the following script, determine the character type of '%s':\n\n%%s\n\nCharacter Type:" % ('%s', ', '.join(self.character_types), '%s')
+class SentenceClassifier:
+    def __init__(self,themes, model_name=None):
+        self.themes = themes
+        self.model_name = model_name
         
+        self.prompt = "Classify the following sentence into one of the themes: %s.\n\n. Only return the theme and nothing else. Sentence: %%s\n\nTheme:" % ', '.join(self.themes)
+            
         if self.model_name:
             self.classifier = pipeline("text-generation", model=self.model_name,  model_kwargs={"torch_dtype": torch.bfloat16}, device_map="auto")
         else:
@@ -33,15 +36,14 @@ class CharacterClassifier:
             if theme.lower() in result.lower():
                 return theme
 
-    def classify_all_characters(self, characters, script):
-        classifications = {}
-        for character in characters:
-            character_type = self.classify_character(character, script)
-            classifications[character] = character_type
+    def classify_sentences(self, sentences):
+        classifications = []
+        for sentence in tqdm(sentences):
+            theme = self.classify_sentence(sentence)
+            classifications.append((sentence, theme))
         return classifications
 
     def save_classifications_to_csv(self, classifications, output_file):
         import pandas as pd
-        data = [(character, character_type) for character, character_type in classifications.items()]
-        df = pd.DataFrame(data, columns=['Character', 'Character Type'])
+        df = pd.DataFrame(classifications, columns=['Sentence', 'Theme'])
         df.to_csv(output_file, index=False, encoding='utf-8')

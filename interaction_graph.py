@@ -23,14 +23,18 @@ class InteractionGraph:
                         else:
                             self.graph.add_edge(author, co_author, weight=1)
 
-    def draw_graph(self, output_file='interaction_graph.png'):
-        pos = nx.spring_layout(self.graph)
+    def draw_graph(self, output_file='interaction_graph.png', scale_down=50):
+        pos = nx.spring_layout(self.graph, k=10, iterations=50)
         plt.figure(figsize=(12, 12))
         
         edges = self.graph.edges(data=True)
         weights = [edge[2]['weight'] for edge in edges]
+        
+        # Scale down the weights for visualization
+        scaled_weights = [weight / scale_down for weight in weights]  # Adjust the divisor as needed
 
-        nx.draw(self.graph, pos, edges=edges, with_labels=True, node_size=3000, node_color='skyblue', font_size=10, width=weights)
+
+        nx.draw(self.graph, pos, with_labels=True, node_size=3000, node_color='skyblue', font_size=10, width=scaled_weights)
         plt.savefig(output_file)
         plt.show()
 

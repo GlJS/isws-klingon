@@ -7,17 +7,29 @@ class DataCleaner:
 
     @staticmethod
     def clean_script_line(line):
-        # Remove character descriptions and annotations
-        cleaned_line = re.sub(r'\{.*?\}', '', line)  # Remove {...}
-        cleaned_line = re.sub(r'\[.*?\]', '', cleaned_line)  # Remove [...]
-        cleaned_line = re.sub(r'\(.*?\)', '', cleaned_line)  # Remove (...)
-        cleaned_line = re.sub(r'\n', ' ', cleaned_line) # Remove \n 
-        cleaned_line = re.sub(r'\s+', ' ', cleaned_line) # Remove extra whitespace
-        
-        # Remove extra whitespace
-        cleaned_line = cleaned_line.strip()
-        
-        return cleaned_line
+        # Define the patterns for different parts
+        patterns = {
+            'M': r'^[A-Z\s\'&]+$',
+            'S': r'^(EXT\.|INT\.)',
+            'N': r'^[A-Z\s\.,\?!:]+$',
+            'C': r'^[A-Z]+\s*$',
+            'D': r'^[a-zA-Z,\';!\?\s\.\-]+$',
+            'E': r'^\([a-z\s]+\)$'
+        }
+
+        # Define a function to identify the type of each line
+        def identify_line_type(line):
+            for key, pattern in patterns.items():
+                if re.match(pattern, line):
+                    return key
+            return None
+
+        # Split the text into lines and identify their types
+        line_type = identify_line_type(line)
+        if line_type:
+            return f'{line_type}: {line}'
+        else:
+            return line
 
     @staticmethod
     def extract_author_and_text(paragraph):
@@ -41,13 +53,21 @@ class DataCleaner:
         with open(self.input_file, 'r', encoding='utf-8') as file:
             content = file.read()
         
-        # Split content based on double newlines (paragraphs)
-        paragraphs = content.split('\n\n')
+        # Split content based on newlines
+        lines = content.split('\n')
         
-        # Use process_map to clean each paragraph concurrently
-        cleaned_paragraphs = process_map(self.clean_script_line, paragraphs, max_workers=4)
+        # Use process_map to clean each line concurrently
+        cleaned_lines = process_map(self.clean_script_line, lines, max_workers=4)
         
-        # Extract author and text for each cleaned paragraph
-        author_text_pairs = [self.extract_author_and_text(para) for para in cleaned_paragraphs if para]
+        # Combine the cleaned lines into a single string
+        cleaned_script = '\n'.join(cleaned_lines)
         
-        return author_text_pairs
+        return cleaned_script
+
+# Usage example:
+input_file = '/mnt/data/to_parse.txt'
+cleaner = DataCleaner(input_file)
+parsed_script = cleaner.clean_movie_script()
+
+with open('/mnt/data/parsed_output.txt', 'w', encoding='utf-8') as file:
+    file.write(parsed_script)

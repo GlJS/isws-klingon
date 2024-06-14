@@ -31,7 +31,9 @@ def main(input_file, output_folder, seed, algorithms, use_openai):
     # Define output file paths
     input_file_basename = os.path.basename(input_file)
     graph_output_file = os.path.join(output_folder, "graphs", f'{input_file_basename}.png')
-    # graph_gml_file = os.path.join(output_folder, 'interaction_graph.gml')
+    graph_gml_file = os.path.join(output_folder, "graphs", f'{input_file_basename}.gml')
+    graph_json_file = os.path.join(output_folder, "graphs", f'{input_file_basename}.json')
+    graph_json_top10_file = os.path.join(output_folder, "graphs", f'{input_file_basename}_top10.json')
     # classification_output_file = os.path.join(output_folder, 'Sentence_Classifications.csv')
     # character_classification_output_file = os.path.join(output_folder, 'Character_Classifications.csv')
     # scatter_plot_file = os.path.join(output_folder, 'topic_scatter.png')
@@ -63,7 +65,9 @@ def main(input_file, output_folder, seed, algorithms, use_openai):
     interaction_graph = InteractionGraph(author_text_pairs)
     interaction_graph.build_graph()
     interaction_graph.draw_graph(graph_output_file)
-    # interaction_graph.save_graph(graph_gml_file)
+    interaction_graph.save_graph(graph_gml_file)
+    interaction_graph.dump_to_json(graph_json_file)
+    interaction_graph.get_top_10_nodes(graph_json_top10_file)
 
 
 if __name__ == "__main__":
